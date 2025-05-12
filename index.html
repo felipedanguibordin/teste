@@ -1,0 +1,373 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Organizador de Treinos</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#1F2937">
+  <style>
+    body {
+      background: linear-gradient(135deg, #1F2937 0%, #111827 100%);
+      color: #E5E7EB;
+    }
+    .badge {
+      background: linear-gradient(45deg, #3B82F6, #F59E0B);
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      font-weight: bold;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    .progress-bar {
+      background: #4B5563;
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      background: linear-gradient(90deg, #3B82F6, #F59E0B);
+      height: 100%;
+      transition: width 0.5s ease-in-out;
+    }
+    .card {
+      background: #1F2937;
+      border: 2px solid #3B82F6;
+      transition: transform 0.2s;
+    }
+    .card:hover {
+      transform: scale(1.02);
+    }
+    button {
+      transition: all 0.3s ease;
+    }
+    button:hover {
+      transform: translateY(-2px);
+    }
+  </style>
+</head>
+<body class="font-sans min-h-screen">
+  <div class="container mx-auto p-4">
+    <h1 class="text-3xl font-bold text-center text-white mb-4"><i class="fa-solid fa-dumbbell mr-2"></i>Organizador de Treinos</h1>
+
+    <!-- Estatísticas -->
+    <div class="bg-gray-800 p-4 rounded-lg shadow-lg mb-6">
+      <h2 class="text-lg font-semibold text-blue-400 mb-2">Suas Conquistas</h2>
+      <p>Total de Treinos Concluídos: <span id="totalConcluidos">0</span></p>
+      <p>Streak Atual: <span id="streak">0</span> dias</p>
+      <div class="mt-2">
+        <p>Progresso Semanal:</p>
+        <div class="progress-bar h-4 w-full mt-1">
+          <div id="progressFill" class="progress-fill h-full" style="width: 0%"></div>
+        </div>
+      </div>
+      <div id="badges" class="mt-4 flex space-x-2"></div>
+    </div>
+
+    <!-- Formulário para adicionar/editar treinos -->
+    <div class="card p-4 rounded-lg shadow-lg mb-6">
+      <h2 class="text-lg font-semibold text-blue-400 mb-2">Adicionar Treino</h2>
+      <input type="text" id="nomeTreino" placeholder="Nome do treino" class="w-full p-2 mb-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400">
+      <textarea id="descTreino" placeholder="Descrição" class="w-full p-2 mb-2 bg-gray-700 border border-gray-600 rounded text-white placeholder-gray-400"></textarea>
+      <input type="time" id="horarioTreino" class="w-full p-2 mb-2 bg-gray-700 border border-gray-600 rounded text-white">
+      <select id="diaSemana" class="w-full p-2 mb-2 bg-gray-700 border border-gray-600 rounded text-white">
+        <option value="Segunda">Segunda</option>
+        <option value="Terça">Terça</option>
+        <option value="Quarta">Quarta</option>
+        <option value="Quinta">Quinta</option>
+        <option value="Sexta">Sexta</option>
+        <option value="Sábado">Sábado</option>
+        <option value="Domingo">Domingo</option>
+      </select>
+      <select id="grupoMuscular" class="w-full p-2 mb-2 bg-gray-700 border border-gray-600 rounded text-white">
+        <option value="Peito">Peito</option>
+        <option value="Costas">Costas</option>
+        <option value="Pernas">Pernas</option>
+        <option value="Ombros">Ombros</option>
+        <option value="Braços">Braços</option>
+        <option value="Core">Core</option>
+        <option value="Cardio">Cardio</option>
+      </select>
+      <button onclick="adicionarTreino()" class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"><i class="fa-solid fa-save mr-2"></i>Salvar Treino</button>
+    </div>
+
+    <!-- Filtros -->
+    <div class="mb-4 flex space-x-4">
+      <div class="flex-1">
+        <label for="filtroDia" class="block text-sm font-medium text-gray-300">Filtrar por dia:</label>
+        <select id="filtroDia" onchange="filtrarTreinos()" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white">
+          <option value="Todos">Todos</option>
+          <option value="Segunda">Segunda</option>
+          <option value="Terça">Terça</option>
+          <option value="Quarta">Quarta</option>
+          <option value="Quinta">Quinta</option>
+          <option value="Sexta">Sexta</option>
+          <option value="Sábado">Sábado</option>
+          <option value="Domingo">Domingo</option>
+        </select>
+      </div>
+      <div class="flex-1">
+        <label for="filtroGrupo" class="block text-sm font-medium text-gray-300">Filtrar por grupo muscular:</label>
+        <select id="filtroGrupo" onchange="filtrarTreinos()" class="w-full p-2 bg-gray-700 border border-gray-600 rounded text-white">
+          <option value="Todos">Todos</option>
+          <option value="Peito">Peito</option>
+          <option value="Costas">Costas</option>
+          <option value="Pernas">Pernas</option>
+          <option value="Ombros">Ombros</option>
+          <option value="Braços">Braços</option>
+          <option value="Core">Core</option>
+          <option value="Cardio">Cardio</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Lista de treinos -->
+    <div id="listaTreinos" class="space-y-4"></div>
+  </div>
+
+  <script>
+    let treinos = JSON.parse(localStorage.getItem('treinos')) || [];
+    let treinoEditando = null;
+    let treinosConcluidos = JSON.parse(localStorage.getItem('treinosConcluidos')) || [];
+    let streak = parseInt(localStorage.getItem('streak')) || 0;
+
+    function adicionarTreino() {
+      const nome = document.getElementById('nomeTreino').value;
+      const desc = document.getElementById('descTreino').value;
+      const horario = document.getElementById('horarioTreino').value;
+      const dia = document.getElementById('diaSemana').value;
+      const grupoMuscular = document.getElementById('grupoMuscular').value;
+
+      if (!nome || !horario || !dia || !grupoMuscular) {
+        alert('Preencha todos os campos obrigatórios!');
+        return;
+      }
+
+      if (treinoEditando !== null) {
+        treinos[treinoEditando] = { 
+          nome, 
+          desc, 
+          horario, 
+          dia, 
+          grupoMuscular, 
+          concluido: treinos[treinoEditando].concluido || false 
+        };
+        treinoEditando = null;
+      } else {
+        treinos.push({ nome, desc, horario, dia, grupoMuscular, concluido: false });
+      }
+
+      localStorage.setItem('treinos', JSON.stringify(treinos));
+      limparFormulario();
+      listarTreinos();
+      atualizarEstatisticas();
+      showNotification('Treino salvo com sucesso!');
+    }
+
+    function marcarConcluido(index) {
+      treinos[index].concluido = !treinos[index].concluido;
+      localStorage.setItem('treinos', JSON.stringify(treinos));
+      if (treinos[index].concluido) {
+        treinosConcluidos.push({ ...treinos[index], data: new Date().toISOString() });
+        localStorage.setItem('treinosConcluidos', JSON.stringify(treinosConcluidos));
+        atualizarStreak();
+        showNotification('Treino concluído! Continue assim!');
+      }
+      listarTreinos();
+      atualizarEstatisticas();
+    }
+
+    function editarTreino(index) {
+      const treino = treinos[index];
+      document.getElementById('nomeTreino').value = treino.nome;
+      document.getElementById('descTreino').value = treino.desc;
+      document.getElementById('horarioTreino').value = treino.horario;
+      document.getElementById('diaSemana').value = treino.dia;
+      document.getElementById('grupoMuscular').value = treino.grupoMuscular;
+      treinoEditando = index;
+    }
+
+    function excluirTreino(index) {
+      if (confirm('Tem certeza que deseja excluir este treino?')) {
+        treinos.splice(index, 1);
+        localStorage.setItem('treinos', JSON.stringify(treinos));
+        listarTreinos();
+        atualizarEstatisticas();
+      }
+    }
+
+    function limparFormulario() {
+      document.getElementById('nomeTreino').value = '';
+      document.getElementById('descTreino').value = '';
+      document.getElementById('horarioTreino').value = '';
+      document.getElementById('diaSemana').value = 'Segunda';
+      document.getElementById('grupoMuscular').value = 'Peito';
+    }
+
+    function listarTreinos() {
+      const lista = document.getElementById('listaTreinos');
+      lista.innerHTML = '';
+      const filtroDia = document.getElementById('filtroDia').value;
+      const filtroGrupo = document.getElementById('filtroGrupo').value;
+      let treinosFiltrados = treinos;
+
+      if (filtroDia !== 'Todos') {
+        treinosFiltrados = treinosFiltrados.filter(treino => treino.dia === filtroDia);
+      }
+      if (filtroGrupo !== 'Todos') {
+        treinosFiltrados = treinosFiltrados.filter(treino => treino.grupoMuscular === filtroGrupo);
+      }
+
+      treinosFiltrados.forEach((treino, index) => {
+        const div = document.createElement('div');
+        div.className = 'card p-4 rounded-lg shadow-lg flex justify-between items-center';
+        div.innerHTML = `
+          <div>
+            <h3 class="text-lg font-semibold text-white ${treino.concluido ? 'line-through text-green-400' : ''}">${treino.nome}</h3>
+            <p class="text-gray-400">${treino.desc || 'Sem descrição'}</p>
+            <p class="text-gray-400">Horário: ${treino.horario}</p>
+            <p class="text-gray-400">Dia: ${treino.dia}</p>
+            <p class="text-gray-400">Grupo Muscular: ${treino.grupoMuscular}</p>
+          </div>
+          <div class="space-x-2">
+            <button onclick="marcarConcluido(${index})" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">
+              <i class="fa-solid fa-check"></i> ${treino.concluido ? 'Desmarcar' : 'Concluir'}
+            </button>
+            <button onclick="editarTreino(${index})" class="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">
+              <i class="fa-solid fa-edit"></i> Editar
+            </button>
+            <button onclick="excluirTreino(${index})" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
+              <i class="fa-solid fa-trash"></i> Excluir
+            </button>
+          </div>
+        `;
+        lista.appendChild(div);
+      });
+    }
+
+    function atualizarEstatisticas() {
+      const total = treinosConcluidos.length;
+      document.getElementById('totalConcluidos').textContent = total;
+
+      const today = new Date().toISOString().split('T')[0];
+      const treinosHoje = treinosConcluidos.filter(t => t.data.startsWith(today)).length;
+      document.getElementById('streak').textContent = streak;
+
+      const treinosSemana = treinos.filter(t => !t.concluido).length;
+      const concluidosSemana = treinos.filter(t => t.concluido).length;
+      const progresso = treinosSemana ? (concluidosSemana / (treinosSemana + concluidosSemana)) * 100 : 0;
+      document.getElementById('progressFill').style.width = `${progresso}%`;
+
+      atualizarBadges(total);
+    }
+
+    function atualizarBadges(total) {
+      const badgesDiv = document.getElementById('badges');
+      badgesDiv.innerHTML = '';
+      if (total >= 5) {
+        badgesDiv.innerHTML += '<span class="badge">Iniciante 💪</span>';
+      }
+      if (total >= 10) {
+        badgesDiv.innerHTML += '<span class="badge">Guerreiro 🏋️</span>';
+      }
+      if (total >= 20) {
+        badgesDiv.innerHTML += '<span class="badge">Mestre 🏆</span>';
+      }
+    }
+
+    function atualizarStreak() {
+      const today = new Date();
+      const yesterday = new Date(today);
+      yesterday.setDate(today.getDate() - 1);
+      const todayStr = today.toISOString().split('T')[0];
+      const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+      const treinosHoje = treinosConcluidos.some(t => t.data.startsWith(todayStr));
+      const treinosOntem = treinosConcluidos.some(t => t.data.startsWith(yesterdayStr));
+
+      if (treinosHoje && treinosOntem) {
+        streak++;
+      } else if (treinosHoje) {
+        streak = 1;
+      } else {
+        streak = 0;
+      }
+      localStorage.setItem('streak', streak);
+    }
+
+    function showNotification(message) {
+      if (Notification.permission === 'granted') {
+        new Notification(message);
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            new Notification(message);
+          }
+        });
+      }
+    }
+
+    function filtrarTreinos() {
+      listarTreinos();
+    }
+
+    // Carregar treinos e estatísticas ao iniciar
+    listarTreinos();
+    atualizarEstatisticas();
+
+    // Registrar Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').then(() => {
+        console.log('Service Worker registrado com sucesso');
+      }).catch(err => {
+        console.log('Erro ao registrar Service Worker:', err);
+      });
+    }
+  </script>
+</body>
+</html>
