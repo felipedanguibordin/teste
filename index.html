@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Organizador de Treinos</title>
     <link
-      href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css"
+      href="https://cdn.jsdelivr.net/npm/tailwindcss@3.4.1/dist/tailwind.min.css"
       rel="stylesheet"
     />
     <link
@@ -35,100 +35,145 @@
       }
     </script>
     <style>
-      body.dark {
-        background: linear-gradient(135deg, #1f2937 0%, #111827 100%);
-        color: #e5e7eb;
+      :root {
+        --primary: #3b82f6;
+        --secondary: #f59e0b;
+        --bg-dark: #1f2937;
+        --bg-light: #f3f4f6;
+        --text-dark: #e5e7eb;
+        --text-light: #1f2937;
       }
-      body.light {
-        background: #f3f4f6;
-        color: #1f2937;
+
+      [data-theme="dark"] {
+        background: linear-gradient(135deg, var(--bg-dark) 0%, #111827 100%);
+        color: var(--text-dark);
       }
+
+      [data-theme="light"] {
+        background: var(--bg-light);
+        color: var(--text-light);
+      }
+
       .badge {
-        background: linear-gradient(45deg, #3b82f6, #f59e0b);
-        color: white;
+        background: linear-gradient(45deg, var(--primary), var(--secondary));
         padding: 0.5rem 1rem;
         border-radius: 9999px;
-        font-weight: bold;
+        font-weight: 600;
         animation: pulse 2s infinite;
       }
+
       @keyframes pulse {
-        0% {
+        0%,
+        100% {
           transform: scale(1);
         }
         50% {
           transform: scale(1.05);
         }
-        100% {
-          transform: scale(1);
-        }
       }
+
       .progress-bar {
         background: #4b5563;
         border-radius: 9999px;
         overflow: hidden;
       }
+
       .progress-fill {
-        background: linear-gradient(90deg, #3b82f6, #f59e0b);
+        background: linear-gradient(90deg, var(--primary), var(--secondary));
         height: 100%;
         transition: width 0.5s ease-in-out;
       }
+
       .card {
-        background: #1f2937;
-        border: 2px solid #3b82f6;
-        transition: transform 0.2s;
+        background: var(--bg-dark);
+        border: 2px solid var(--primary);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
       }
-      .card.light {
+
+      [data-theme="light"] .card {
         background: #ffffff;
-        border: 2px solid #3b82f6;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
       }
+
       .card:hover {
-        transform: scale(1.02);
+        transform: translateY(-4px);
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
       }
-      button {
+
+      .input-field {
+        transition: all 0.3s ease;
+        border: 1px solid #4b5563;
+      }
+
+      [data-theme="light"] .input-field {
+        border: 1px solid #d1d5db;
+        background: #ffffff;
+      }
+
+      .input-field:focus {
+        outline: none;
+        border-color: var(--primary);
+        box-shadow: 0 0 0 3px rgb(59 130 246 / 0.1);
+      }
+
+      .btn {
         transition: all 0.3s ease;
       }
-      button:hover {
+
+      .btn:hover {
         transform: translateY(-2px);
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
       }
-      .input-dark {
-        background: #374151;
-        border: 1px solid #4b5563;
-        color: #e5e7eb;
-      }
-      .input-light {
-        background: #ffffff;
-        border: 1px solid #d1d5db;
-        color: #1f2937;
+
+      @media (max-width: 640px) {
+        .container {
+          padding: 1rem;
+        }
+
+        .card {
+          padding: 1rem;
+        }
+
+        .btn {
+          padding: 0.5rem 1rem;
+        }
       }
     </style>
   </head>
-  <body class="font-sans min-h-screen dark">
-    <div class="container mx-auto p-4">
-      <div class="flex justify-between items-center mb-4">
-        <h1 class="text-3xl font-bold text-white light:text-gray-800">
+  <body
+    data-theme="dark"
+    class="font-sans min-h-screen transition-colors duration-300"
+  >
+    <div class="container mx-auto p-6 max-w-4xl">
+      <header class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl md:text-3xl font-bold flex items-center">
           <i class="fa-solid fa-dumbbell mr-2"></i>Organizador de Treinos
         </h1>
-        <!-- <button
+        <button
           onclick="toggleTheme()"
-          class="bg-gray-600 text-white px-3 py-1 rounded hover:bg-gray-700"
+          class="btn bg-gray-600 text-white p-2 rounded-full hover:bg-gray-700"
+          aria-label="Alternar tema"
         >
           <i class="fa-solid fa-moon" id="themeIcon"></i>
-        </button> -->
-      </div>
+        </button>
+      </header>
 
       <!-- Estatísticas -->
-      <div class="card light:card-light p-4 rounded-lg shadow-lg mb-6">
-        <h2
-          class="text-lg font-semibold text-blue-400 light:text-blue-600 mb-2"
-        >
+      <section class="card p-6 rounded-xl mb-6" aria-labelledby="stats-title">
+        <h2 id="stats-title" class="text-lg font-semibold text-blue-400 mb-4">
           Suas Conquistas
         </h2>
-        <p>Total de Treinos Concluídos: <span id="totalConcluidos">0</span></p>
-        <p>Streak Atual: <span id="streak">0</span> dias</p>
-        <p id="balanceamento" class="text-yellow-400 light:text-yellow-600"></p>
-        <div class="mt-2">
-          <p>Progresso Semanal:</p>
-          <div class="progress-bar h-4 w-full mt-1">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <p>
+            Total de Treinos Concluídos:
+            <span id="totalConcluidos" class="font-bold">0</span>
+          </p>
+          <p>Streak Atual: <span id="streak" class="font-bold">0</span> dias</p>
+          <p id="balanceamento" class="text-yellow-400 col-span-full"></p>
+        </div>
+        <div class="mt-4">
+          <p class="mb-2">Progresso Semanal:</p>
+          <div class="progress-bar h-4 w-full">
             <div
               id="progressFill"
               class="progress-fill h-full"
@@ -137,129 +182,151 @@
           </div>
         </div>
         <div id="badges" class="mt-4 flex flex-wrap gap-2"></div>
-      </div>
+      </section>
 
       <!-- Gráfico -->
-      <div class="card light:card-light p-4 rounded-lg shadow-lg mb-6">
-        <h2
-          class="text-lg font-semibold text-blue-400 light:text-blue-600 mb-2"
-        >
+      <section class="card p-6 rounded-xl mb-6" aria-labelledby="chart-title">
+        <h2 id="chart-title" class="text-lg font-semibold text-blue-400 mb-4">
           Desempenho
         </h2>
         <select
           id="chartPeriod"
           onchange="atualizarGrafico()"
-          class="input-dark light:input-light w-full p-2 mb-2 rounded"
+          class="input-field w-full p-2 rounded mb-4"
+          aria-label="Período do gráfico"
         >
           <option value="semanal">Semanal</option>
           <option value="mensal">Mensal</option>
         </select>
-        <canvas id="desempenhoChart" height="200"></canvas>
-      </div>
+        <canvas
+          id="desempenhoChart"
+          height="200"
+          role="img"
+          aria-label="Gráfico de desempenho"
+        ></canvas>
+      </section>
 
-      <!-- Formulário para adicionar/editar treinos -->
-      <div class="card light:card-light p-4 rounded-lg shadow-lg mb-6">
-        <h2
-          class="text-lg font-semibold text-blue-400 light:text-blue-600 mb-2"
-        >
+      <!-- Formulário -->
+      <section class="card p-6 rounded-xl mb-6" aria-labelledby="form-title">
+        <h2 id="form-title" class="text-lg font-semibold text-blue-400 mb-4">
           Adicionar Treino
         </h2>
-        <input
-          type="text"
-          id="nomeTreino"
-          placeholder="Nome do treino"
-          class="input-dark light:input-light w-full p-2 mb-2 rounded placeholder-gray-400 light:placeholder-gray-500"
-        />
-        <textarea
-          id="descTreino"
-          placeholder="Descrição"
-          class="input-dark light:input-light w-full p-2 mb-2 rounded placeholder-gray-400 light:placeholder-gray-500"
-        ></textarea>
-        <input
-          type="time"
-          id="horarioTreino"
-          class="input-dark light:input-light w-full p-2 mb-2 rounded"
-        />
-        <select
-          id="diaSemana"
-          class="input-dark light:input-light w-full p-2 mb-2 rounded"
+        <form
+          id="treinoForm"
+          onsubmit="event.preventDefault(); adicionarTreino()"
         >
-          <option value="Segunda">Segunda</option>
-          <option value="Terça">Terça</option>
-          <option value="Quarta">Quarta</option>
-          <option value="Quinta">Quinta</option>
-          <option value="Sexta">Sexta</option>
-          <option value="Sábado">Sábado</option>
-          <option value="Domingo">Domingo</option>
-        </select>
-        <select
-          id="grupoMuscular"
-          class="input-dark light:input-light w-full p-2 mb-2 rounded"
-        >
-          <option value="Peito">Peito</option>
-          <option value="Costas">Costas</option>
-          <option value="Pernas">Pernas</option>
-          <option value="Ombros">Ombros</option>
-          <option value="Braços">Braços</option>
-          <option value="Core">Core</option>
-          <option value="Cardio">Cardio</option>
-        </select>
-        <button
-          onclick="adicionarTreino()"
-          class="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-        >
-          <i class="fa-solid fa-save mr-2"></i>Salvar Treino
-        </button>
-      </div>
+          <div class="grid grid-cols-1 gap-4">
+            <input
+              type="text"
+              id="nomeTreino"
+              placeholder="Nome do treino"
+              class="input-field w-full p-2 rounded"
+              required
+              aria-required="true"
+            />
+            <textarea
+              id="descTreino"
+              placeholder="Descrição"
+              class="input-field w-full p-2 rounded resize-none h-24"
+              aria-label="Descrição do treino"
+            ></textarea>
+            <input
+              type="time"
+              id="horarioTreino"
+              class="input-field w-full p-2 rounded"
+              required
+              aria-required="true"
+            />
+            <select
+              id="diaSemana"
+              class="input-field w-full p-2 rounded"
+              required
+              aria-required="true"
+            >
+              <option value="Segunda">Segunda</option>
+              <option value="Terça">Terça</option>
+              <option value="Quarta">Quarta</option>
+              <option value="Quinta">Quinta</option>
+              <option value="Sexta">Sexta</option>
+              <option value="Sábado">Sábado</option>
+              <option value="Domingo">Domingo</option>
+            </select>
+            <select
+              id="grupoMuscular"
+              class="input-field w-full p-2 rounded"
+              required
+              aria-required="true"
+            >
+              <option value="Peito">Peito</option>
+              <option value="Costas">Costas</option>
+              <option value="Pernas">Pernas</option>
+              <option value="Ombros">Ombros</option>
+              <option value="Braços">Braços</option>
+              <option value="Core">Core</option>
+              <option value="Cardio">Cardio</option>
+            </select>
+            <button
+              type="submit"
+              class="btn w-full bg-blue-500 text-white p-3 rounded hover:bg-blue-600"
+            >
+              <i class="fa-solid fa-save mr-2"></i>Salvar Treino
+            </button>
+          </div>
+        </form>
+      </section>
 
       <!-- Filtros -->
-      <div class="mb-4 flex space-x-4">
-        <div class="flex-1">
-          <label
-            for="filtroDia"
-            class="block text-sm font-medium text-gray-300 light:text-gray-700"
-            >Filtrar por dia:</label
-          >
-          <select
-            id="filtroDia"
-            onchange="filtrarTreinos()"
-            class="input-dark light:input-light w-full p-2 rounded"
-          >
-            <option value="Todos">Todos</option>
-            <option value="Segunda">Segunda</option>
-            <option value="Terça">Terça</option>
-            <option value="Quarta">Quarta</option>
-            <option value="Quinta">Quinta</option>
-            <option value="Sexta">Sexta</option>
-            <option value="Sábado">Sábado</option>
-            <option value="Domingo">Domingo</option>
-          </select>
+      <section class="mb-6" aria-label="Filtros de treino">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label for="filtroDia" class="block text-sm font-medium mb-1">
+              Filtrar por dia:
+            </label>
+            <select
+              id="filtroDia"
+              onchange="filtrarTreinos()"
+              class="input-field w-full p-2 rounded"
+              aria-label="Filtrar por dia"
+            >
+              <option value="Todos">Todos</option>
+              <option value="Segunda">Segunda</option>
+              <option value="Terça">Terça</option>
+              <option value="Quarta">Quarta</option>
+              <option value="Quinta">Quinta</option>
+              <option value="Sexta">Sexta</option>
+              <option value="Sábado">Sábado</option>
+              <option value="Domingo">Domingo</option>
+            </select>
+          </div>
+          <div>
+            <label for="filtroGrupo" class="block text-sm font-medium mb-1">
+              Filtrar por grupo muscular:
+            </label>
+            <select
+              id="filtroGrupo"
+              onchange="filtrarTreinos()"
+              class="input-field w-full p-2 rounded"
+              aria-label="Filtrar por grupo muscular"
+            >
+              <option value="Todos">Todos</option>
+              <option value="Peito">Peito</option>
+              <option value="Costas">Costas</option>
+              <option value="Pernas">Pernas</option>
+              <option value="Ombros">Ombros</option>
+              <option value="Braços">Braços</option>
+              <option value="Core">Core</option>
+              <option value="Cardio">Cardio</option>
+            </select>
+          </div>
         </div>
-        <div class="flex-1">
-          <label
-            for="filtroGrupo"
-            class="block text-sm font-medium text-gray-300 light:text-gray-700"
-            >Filtrar por grupo muscular:</label
-          >
-          <select
-            id="filtroGrupo"
-            onchange="filtrarTreinos()"
-            class="input-dark light:input-light w-full p-2 rounded"
-          >
-            <option value="Todos">Todos</option>
-            <option value="Peito">Peito</option>
-            <option value="Costas">Costas</option>
-            <option value="Pernas">Pernas</option>
-            <option value="Ombros">Ombros</option>
-            <option value="Braços">Braços</option>
-            <option value="Core">Core</option>
-            <option value="Cardio">Cardio</option>
-          </select>
-        </div>
-      </div>
+      </section>
 
       <!-- Lista de treinos -->
-      <div id="listaTreinos" class="space-y-4"></div>
+      <section
+        id="listaTreinos"
+        class="space-y-4"
+        aria-label="Lista de treinos"
+      ></section>
     </div>
 
     <script>
@@ -271,7 +338,7 @@
       let streak = parseInt(localStorage.getItem("streak")) || 0;
       let chartInstance = null;
 
-      // Garantir que treinos e treinosConcluidos sejam arrays
+      // Garantir arrays
       if (!Array.isArray(treinos)) {
         treinos = [];
         localStorage.setItem("treinos", JSON.stringify(treinos));
@@ -297,66 +364,57 @@
       function toggleTheme() {
         const body = document.body;
         const themeIcon = document.getElementById("themeIcon");
-        if (!themeIcon) {
-          console.error("Elemento themeIcon não encontrado");
-          return;
-        }
-        body.classList.toggle("dark");
-        body.classList.toggle("light");
-        const isDark = body.classList.contains("dark");
-        themeIcon.className = isDark ? "fa-solid fa-moon" : "fa-solid fa-sun";
-        localStorage.setItem("theme", isDark ? "dark" : "light");
+        const isDark = body.getAttribute("data-theme") === "dark";
+        body.setAttribute("data-theme", isDark ? "light" : "dark");
+        themeIcon.className = isDark ? "fa-solid fa-sun" : "fa-solid fa-moon";
+        localStorage.setItem("theme", isDark ? "light" : "dark");
         atualizarGrafico();
       }
 
       function loadTheme() {
         const theme = localStorage.getItem("theme") || "dark";
-        const body = document.body;
+        document.body.setAttribute("data-theme", theme);
         const themeIcon = document.getElementById("themeIcon");
-        body.classList.add(theme);
         if (themeIcon) {
           themeIcon.className =
             theme === "dark" ? "fa-solid fa-moon" : "fa-solid fa-sun";
-        } else {
-          console.error("Elemento themeIcon não encontrado ao carregar tema");
         }
       }
 
       function adicionarTreino() {
-        const nome = document.getElementById("nomeTreino").value;
-        let desc = document.getElementById("descTreino").value;
+        const form = document.getElementById("treinoForm");
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+
+        const nome = document.getElementById("nomeTreino").value.trim();
+        let desc = document.getElementById("descTreino").value.trim();
         const horario = document.getElementById("horarioTreino").value;
         const dia = document.getElementById("diaSemana").value;
         const grupoMuscular = document.getElementById("grupoMuscular").value;
-
-        if (!nome || !horario || !dia || !grupoMuscular) {
-          alert("Preencha todos os campos obrigatórios!");
-          return;
-        }
 
         if (!desc) {
           desc = treinoSugestoes[grupoMuscular] || "Treino básico";
         }
 
+        const treinoData = {
+          nome,
+          desc,
+          horario,
+          dia,
+          grupoMuscular,
+          concluido:
+            treinoEditando !== null
+              ? treinos[treinoEditando]?.concluido || false
+              : false,
+        };
+
         if (treinoEditando !== null) {
-          treinos[treinoEditando] = {
-            nome,
-            desc,
-            horario,
-            dia,
-            grupoMuscular,
-            concluido: treinos[treinoEditando].concluido || false,
-          };
+          treinos[treinoEditando] = treinoData;
           treinoEditando = null;
         } else {
-          treinos.push({
-            nome,
-            desc,
-            horario,
-            dia,
-            grupoMuscular,
-            concluido: false,
-          });
+          treinos.push(treinoData);
         }
 
         localStorage.setItem("treinos", JSON.stringify(treinos));
@@ -398,6 +456,7 @@
         document.getElementById("diaSemana").value = treino.dia;
         document.getElementById("grupoMuscular").value = treino.grupoMuscular;
         treinoEditando = index;
+        document.getElementById("nomeTreino").focus();
       }
 
       function excluirTreino(index) {
@@ -412,25 +471,16 @@
       }
 
       function limparFormulario() {
-        document.getElementById("nomeTreino").value = "";
-        document.getElementById("descTreino").value = "";
-        document.getElementById("horarioTreino").value = "";
-        document.getElementById("diaSemana").value = "Segunda";
-        document.getElementById("grupoMuscular").value = "Peito";
+        document.getElementById("treinoForm").reset();
+        treinoEditando = null;
       }
 
       function listarTreinos() {
         const lista = document.getElementById("listaTreinos");
-        if (!lista) {
-          console.error("Elemento listaTreinos não encontrado");
-          return;
-        }
         lista.innerHTML = "";
-        const filtroDia =
-          document.getElementById("filtroDia")?.value || "Todos";
-        const filtroGrupo =
-          document.getElementById("filtroGrupo")?.value || "Todos";
-        let treinosFiltrados = Array.isArray(treinos) ? treinos : [];
+        const filtroDia = document.getElementById("filtroDia").value;
+        const filtroGrupo = document.getElementById("filtroGrupo").value;
+        let treinosFiltrados = [...treinos];
 
         if (filtroDia !== "Todos") {
           treinosFiltrados = treinosFiltrados.filter(
@@ -443,40 +493,60 @@
           );
         }
 
+        if (treinosFiltrados.length === 0) {
+          lista.innerHTML =
+            '<p class="text-center text-gray-400">Nenhum treino encontrado.</p>';
+          return;
+        }
+
         treinosFiltrados.forEach((treino, index) => {
           const div = document.createElement("div");
           div.className =
-            "card light:card-light p-4 rounded-lg shadow-lg flex justify-between items-center";
+            "card p-4 rounded-xl flex flex-col md:flex-row justify-between items-start md:items-center gap-4";
           div.innerHTML = `
-          <div>
-            <h3 class="text-lg font-semibold text-white light:text-gray-800 ${
-              treino.concluido ? "line-through text-green-400" : ""
-            }">${treino.nome}</h3>
-            <p class="text-gray-400 light:text-gray-600">${
-              treino.desc || "Sem descrição"
-            }</p>
-            <p class="text-gray-400 light:text-gray-600">Horário: ${
-              treino.horario
-            }</p>
-            <p class="text-gray-400 light:text-gray-600">Dia: ${treino.dia}</p>
-            <p class="text-gray-400 light:text-gray-600">Grupo Muscular: ${
-              treino.grupoMuscular
-            }</p>
-          </div>
-          <div class="space-x-2">
-            <button onclick="marcarConcluido(${index})" class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600">
-              <i class="fa-solid fa-check"></i> ${
-                treino.concluido ? "Desmarcar" : "Concluir"
-              }
-            </button>
-            <button onclick="editarTreino(${index})" class="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600">
-              <i class="fa-solid fa-edit"></i> Editar
-            </button>
-            <button onclick="excluirTreino(${index})" class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600">
-              <i class="fa-solid fa-trash"></i> Excluir
-            </button>
-          </div>
-        `;
+            <div class="flex-1">
+              <h3 class="text-lg font-semibold ${
+                treino.concluido ? "line-through text-green-400" : ""
+              }">
+                ${treino.nome}
+              </h3>
+              <p class="text-gray-400">${treino.desc || "Sem descrição"}</p>
+              <p class="text-gray-400">Horário: ${treino.horario}</p>
+              <p class="text-gray-400">Dia: ${treino.dia}</p>
+              <p class="text-gray-400">Grupo Muscular: ${
+                treino.grupoMuscular
+              }</p>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <button 
+                onclick="marcarConcluido(${index})" 
+                class="btn bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                aria-label="${
+                  treino.concluido
+                    ? "Desmarcar treino concluído"
+                    : "Marcar treino como concluído"
+                }"
+              >
+                <i class="fa-solid fa-check mr-1"></i> ${
+                  treino.concluido ? "Desmarcar" : "Concluir"
+                }
+              </button>
+              <button 
+                onclick="editarTreino(${index})" 
+                class="btn bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                aria-label="Editar treino"
+              >
+                <i class="fa-solid fa-edit mr-1"></i> Editar
+              </button>
+              <button 
+                onclick="excluirTreino(${index})" 
+                class="btn bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+                aria-label="Excluir treino"
+              >
+                <i class="fa-solid fa-trash mr-1"></i> Excluir
+              </button>
+            </div>
+          `;
           lista.appendChild(div);
         });
       }
@@ -491,17 +561,10 @@
         const progresso = treinosSemana
           ? (concluidosSemana / (treinosSemana + concluidosSemana)) * 100
           : 0;
-        const progressFill = document.getElementById("progressFill");
-        if (progressFill) {
-          progressFill.style.width = `${progresso}%`;
-        }
+        document.getElementById("progressFill").style.width = `${progresso}%`;
 
-        const sugestao = sugerirBalanceamento();
-        const balanceamento = document.getElementById("balanceamento");
-        if (balanceamento) {
-          balanceamento.textContent = sugestao;
-        }
-
+        document.getElementById("balanceamento").textContent =
+          sugerirBalanceamento();
         atualizarBadges();
       }
 
@@ -543,7 +606,6 @@
 
       function atualizarBadges() {
         const badgesDiv = document.getElementById("badges");
-        if (!badgesDiv) return;
         badgesDiv.innerHTML = "";
         const umaSemanaAtras = new Date();
         umaSemanaAtras.setDate(umaSemanaAtras.getDate() - 7);
@@ -563,18 +625,18 @@
           (t) => new Date(t.data) >= umMesAtras
         );
 
-        if (diasUnicos.length >= 7) {
-          badgesDiv.innerHTML += '<span class="badge">Persistência 🥳</span>';
-        }
-        if (treinosMes.length >= 10) {
-          badgesDiv.innerHTML += '<span class="badge">Compromisso 💪</span>';
-        }
-        if (gruposUnicos.length >= 3) {
-          badgesDiv.innerHTML += '<span class="badge">Equilíbrio 🏋️</span>';
-        }
-        if (treinosConcluidos.length >= 20) {
-          badgesDiv.innerHTML += '<span class="badge">Mestre 🏆</span>';
-        }
+        const badges = [
+          { condition: diasUnicos.length >= 7, text: "Persistência 🥳" },
+          { condition: treinosMes.length >= 10, text: "Compromisso 💪" },
+          { condition: gruposUnicos.length >= 3, text: "Equilíbrio 🏋️" },
+          { condition: treinosConcluidos.length >= 20, text: "Mestre 🏆" },
+        ];
+
+        badges.forEach((badge) => {
+          if (badge.condition) {
+            badgesDiv.innerHTML += `<span class="badge">${badge.text}</span>`;
+          }
+        });
       }
 
       function atualizarStreak() {
@@ -602,22 +664,9 @@
       }
 
       function atualizarGrafico() {
-        const period =
-          document.getElementById("chartPeriod")?.value || "semanal";
-        const ctx = document
-          .getElementById("desempenhoChart")
-          ?.getContext("2d");
-        if (!ctx) {
-          console.error("Elemento desempenhoChart não encontrado");
-          return;
-        }
-        if (!window.Chart) {
-          console.error(
-            "Chart.js não está carregado. Tente recarregar a página."
-          );
-          return;
-        }
-        const isDark = document.body.classList.contains("dark");
+        const period = document.getElementById("chartPeriod").value;
+        const ctx = document.getElementById("desempenhoChart").getContext("2d");
+        const isDark = document.body.getAttribute("data-theme") === "dark";
         const labels = [];
         const data = [];
 
@@ -667,12 +716,18 @@
             ],
           },
           options: {
+            responsive: true,
+            maintainAspectRatio: false,
             scales: {
               y: {
                 beginAtZero: true,
                 ticks: { color: isDark ? "#E5E7EB" : "#1F2937" },
+                grid: { color: isDark ? "#374151" : "#E5E7EB" },
               },
-              x: { ticks: { color: isDark ? "#E5E7EB" : "#1F2937" } },
+              x: {
+                ticks: { color: isDark ? "#E5E7EB" : "#1F2937" },
+                grid: { display: false },
+              },
             },
             plugins: {
               legend: { labels: { color: isDark ? "#E5E7EB" : "#1F2937" } },
@@ -714,30 +769,26 @@
         listarTreinos();
       }
 
-      // Carregar treinos e estatísticas ao iniciar
+      // Inicialização
       loadTheme();
       listarTreinos();
       atualizarEstatisticas();
       atualizarGrafico();
-      setInterval(verificarLembretes, 60000); // Verifica a cada minuto
+      setInterval(verificarLembretes, 60000);
 
-      // Solicitar permissão de notificação
       if (Notification.permission === "default") {
         showNotification(
           "Permita notificações para receber lembretes de treinos!"
         );
       }
 
-      // Registrar Service Worker
       if ("serviceWorker" in navigator) {
         navigator.serviceWorker
           .register("sw.js")
-          .then(() => {
-            console.log("Service Worker registrado com sucesso");
-          })
-          .catch((err) => {
-            console.error("Erro ao registrar Service Worker:", err);
-          });
+          .then(() => console.log("Service Worker registrado com sucesso"))
+          .catch((err) =>
+            console.error("Erro ao registrar Service Worker:", err)
+          );
       }
     </script>
   </body>
